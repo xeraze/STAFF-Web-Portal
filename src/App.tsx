@@ -3,7 +3,6 @@ import type { DemoSession, PortalPage } from './data';
 import { activity, announcements, navigation, roles, rules, searchItems } from './data';
 
 const SESSION_KEY = 'staff_portal_demo_session_v2';
-const DISCORD_LOGO = 'https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d74e9607e61eeec9c91b_Logo.svg';
 const DISCORD_SYMBOL = 'https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d7f4ef6498ac018f2c55_Symbol.svg';
 
 function readSession(): DemoSession | null {
@@ -11,7 +10,10 @@ function readSession(): DemoSession | null {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const value = JSON.parse(raw) as DemoSession;
-    return value.login && value.displayName && value.role ? value : null;
+    if (!value.login) return null;
+    const suffix = value.login.split('_').at(-1) ?? '0000';
+    // Normalize sessions created by the previous English-language mockup.
+    return { login: value.login, displayName: `Сотрудник ${suffix}`, role: 'Модератор' };
   } catch {
     return null;
   }
@@ -19,7 +21,7 @@ function readSession(): DemoSession | null {
 
 function makeSession(login: string): DemoSession {
   const suffix = login.split('_').at(-1) ?? '0000';
-  return { login, displayName: `Staff ${suffix}`, role: 'Модератор' };
+  return { login, displayName: `Сотрудник ${suffix}`, role: 'Модератор' };
 }
 
 function pageFromHash(): PortalPage {
@@ -32,15 +34,11 @@ function navigateTo(page: PortalPage, setPage: (page: PortalPage) => void) {
   setPage(page);
 }
 
-type IconName =
-  | 'overview' | 'users' | 'book' | 'shield' | 'search' | 'bell' | 'chevron' | 'arrow'
-  | 'logout' | 'check' | 'clock' | 'message' | 'chart' | 'spark' | 'external' | 'close'
-  | 'menu' | 'file' | 'lock' | 'help' | 'calendar' | 'info' | 'more' | 'activity'
-  | 'ticket' | 'settings' | 'command' | 'plus' | 'dot';
+type IconName = 'overview' | 'users' | 'book' | 'shield' | 'search' | 'bell' | 'chevron' | 'arrow' | 'logout' | 'check' | 'clock' | 'message' | 'chart' | 'spark' | 'external' | 'close' | 'menu' | 'file' | 'lock' | 'help' | 'calendar' | 'info' | 'activity' | 'ticket' | 'plus' | 'dot' | 'pin' | 'command';
 
-function Icon({ name, size = 18, strokeWidth = 1.8 }: { name: IconName; size?: number; strokeWidth?: number }) {
+function Icon({ name, size = 20, strokeWidth = 1.8 }: { name: IconName; size?: number; strokeWidth?: number }) {
   const paths: Record<IconName, ReactNode> = {
-    overview: <><rect x="3.5" y="3.5" width="7" height="7" rx="1.7"/><rect x="13.5" y="3.5" width="7" height="4" rx="1.7"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.7"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.7"/></>,
+    overview: <><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></>,
     users: <><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="7.5" r="3.5"/><path d="M16 4.3a3.5 3.5 0 0 1 0 6.8M20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4"/></>,
     book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></>,
     shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></>,
@@ -62,35 +60,30 @@ function Icon({ name, size = 18, strokeWidth = 1.8 }: { name: IconName; size?: n
     help: <><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.2 1.8c-1.1 1-1.8 1.3-1.8 2.7M12 17h.01"/></>,
     calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></>,
     info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></>,
-    more: <><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></>,
     activity: <><path d="M3 12h4l3-8 4 16 3-8h4"/></>,
     ticket: <><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6Z"/><path d="M13 6v2M13 11v2M13 16v2"/></>,
-    settings: <><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.8 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.8-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.8-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.8 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2Z"/></>,
-    command: <><path d="M9 8V5a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v14a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V8Z"/></>,
     plus: <path d="M12 5v14M5 12h14"/>,
     dot: <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>,
+    pin: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
+    command: <><path d="M9 8V5a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v14a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V8Z"/></>,
   };
-
   return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
-function DiscordBrand({ compact = false }: { compact?: boolean }) {
-  return (
-    <span className={`discord-brand${compact ? ' discord-brand--compact' : ''}`}>
-      <img src={DISCORD_LOGO} alt="Discord" />
-      {!compact && <span className="discord-brand__divider" />}
-      {!compact && <span className="discord-brand__descriptor">STAFF PORTAL</span>}
-    </span>
-  );
+function Brand({ compact = false }: { compact?: boolean }) {
+  return <span className={`brand-lockup${compact ? ' brand-lockup--compact' : ''}`}>
+    <span className="brand-lockup__mark"><img src={DISCORD_SYMBOL} alt="" /></span>
+    {!compact && <span className="brand-lockup__words"><b>Discord</b><small>ПОРТАЛ КОМАНДЫ</small></span>}
+  </span>;
 }
 
 function LoginScreen({ onComplete }: { onComplete: (session: DemoSession) => void }) {
   const [login, setLogin] = useState('');
   const [passwordLength, setPasswordLength] = useState(0);
-  const [status, setStatus] = useState('Подготовка демонстрационной сессии');
-  const [isReady, setIsReady] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState('Подготавливаем демонстрационный доступ');
+  const [generatedLogin] = useState(() => `sotrudnik_${Math.floor(1000 + Math.random() * 9000)}`);
   const completed = useRef(false);
-  const [generatedLogin] = useState(() => `staff_${Math.floor(1000 + Math.random() * 9000)}`);
 
   const finish = () => {
     if (completed.current) return;
@@ -102,22 +95,22 @@ function LoginScreen({ onComplete }: { onComplete: (session: DemoSession) => voi
     let cancelled = false;
     const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
     const run = async () => {
-      await pause(320);
-      for (let index = 1; index <= generatedLogin.length; index += 1) {
+      await pause(250);
+      for (let i = 1; i <= generatedLogin.length; i += 1) {
         if (cancelled) return;
-        setLogin(generatedLogin.slice(0, index));
-        await pause(48);
+        setLogin(generatedLogin.slice(0, i));
+        await pause(54);
       }
-      await pause(160);
-      for (let index = 1; index <= 14; index += 1) {
+      await pause(140);
+      for (let i = 1; i <= 14; i += 1) {
         if (cancelled) return;
-        setPasswordLength(index);
-        await pause(32);
+        setPasswordLength(i);
+        await pause(31);
       }
       if (cancelled) return;
-      setStatus('Демонстрационный доступ подтверждён');
-      setIsReady(true);
-      await pause(650);
+      setStatus('Доступ подготовлен');
+      setReady(true);
+      await pause(850);
       if (!cancelled) finish();
     };
     void run();
@@ -126,116 +119,73 @@ function LoginScreen({ onComplete }: { onComplete: (session: DemoSession) => voi
 
   const progress = Math.min(100, Math.round((login.length / generatedLogin.length * 55) + (passwordLength / 14 * 45)));
 
-  return (
-    <main className="login-screen">
-      <div className="login-noise" aria-hidden="true" />
-      <div className="login-grid-glow login-grid-glow--one" aria-hidden="true" />
-      <div className="login-grid-glow login-grid-glow--two" aria-hidden="true" />
-      <header className="login-header">
-        <DiscordBrand />
-        <div className="login-header__right"><span className="environment-indicator"><i /> DEMO ENVIRONMENT</span><span className="login-header__version">INDEPENDENT CONCEPT / 01</span></div>
-      </header>
-
-      <div className="login-content">
-        <section className="login-story">
-          <p className="micro-label"><span className="micro-label__line" /> COMMUNITY OPERATIONS / 2026</p>
-          <h1>Good people.<br /><em>Better</em> communities.</h1>
-          <p className="login-story__copy">Рабочее пространство команды Discord-сервера. Материалы, внутренняя документация и инструменты — в одном месте.</p>
-          <div className="login-story__bottom">
-            <div className="login-orbit" aria-hidden="true">
-              <div className="login-orbit__ring login-orbit__ring--outer" />
-              <div className="login-orbit__ring login-orbit__ring--middle" />
-              <div className="login-orbit__ring login-orbit__ring--inner" />
-              <img src={DISCORD_SYMBOL} alt="" />
-              <span className="login-orbit__node login-orbit__node--one" />
-              <span className="login-orbit__node login-orbit__node--two" />
-            </div>
-            <div className="login-feature-note"><span>01 / 03</span><b>One space for the people<br />behind the community.</b><small>TEAM · KNOWLEDGE · STANDARDS</small></div>
-          </div>
-        </section>
-
-        <section className="login-panel" aria-label="Демонстрационный вход">
-          <div className="login-panel__top"><span className="login-panel__mark"><Icon name="lock" size={18} /></span><span className="login-panel__status"><i /> LOCAL PREVIEW</span></div>
-          <p className="micro-label">STAFF ACCESS / 001</p>
-          <h2>Вход в<br />рабочее пространство.</h2>
-          <p className="login-panel__copy">Показываем пример входа. Тестовые данные вводятся автоматически — реальная учётная запись не требуется.</p>
-
-          <div className="login-fields">
-            <label className="login-field"><span>USERNAME</span><span className="login-input"><span>{login || ' '}</span><i className={!login ? 'is-caret' : ''} /></span></label>
-            <label className="login-field"><span>PASSWORD</span><span className="login-input login-input--password"><span>{'•'.repeat(passwordLength)}</span><i className={passwordLength === 0 ? 'is-caret' : ''} /></span></label>
-          </div>
-          <div className="login-progress-label"><span>{status}</span><b>{progress}%</b></div>
-          <div className="login-progress"><span style={{ width: `${isReady ? 100 : progress}%` }} /></div>
-          <button className="button button--primary login-submit" type="button" onClick={finish} disabled={!isReady}>Открыть портал <Icon name="arrow" size={16} /></button>
-          <p className="login-panel__fineprint"><Icon name="info" size={14} /> Локальная демонстрация. Данные не отправляются и не проверяются на сервере.</p>
-        </section>
-      </div>
-
-      <footer className="login-footer"><span>DISCORD STAFF PORTAL <i>—</i> CONCEPT TEMPLATE</span><span>НЕОФИЦИАЛЬНЫЙ ПРОЕКТ <i>·</i> НЕ АФФИЛИРОВАН С DISCORD INC.</span></footer>
-    </main>
-  );
+  return <main className="login-screen">
+    <div className="login-grain" aria-hidden="true" />
+    <header className="login-topbar"><Brand /><span className="demo-pill"><i /> ДЕМОНСТРАЦИОННЫЙ РЕЖИМ</span></header>
+    <div className="login-stage">
+      <section className="login-intro">
+        <p className="eyebrow"><span /> ВНУТРЕННЯЯ СРЕДА СООБЩЕСТВА</p>
+        <h1>За каждым<br />сильным <em>сообществом</em><br />стоит команда.</h1>
+        <p className="login-intro__text">Рабочее пространство для тех, кто помогает Discord-серверу оставаться местом, куда хочется возвращаться.</p>
+        <div className="login-art" aria-hidden="true">
+          <div className="login-art__halo login-art__halo--outer" />
+          <div className="login-art__halo login-art__halo--middle" />
+          <div className="login-art__halo login-art__halo--inner" />
+          <div className="login-art__disc"><img src={DISCORD_SYMBOL} alt="" /></div>
+          <span className="login-art__orbit-dot login-art__orbit-dot--one" />
+          <span className="login-art__orbit-dot login-art__orbit-dot--two" />
+          <span className="login-art__orbit-dot login-art__orbit-dot--three" />
+          <span className="login-art__annotation login-art__annotation--one">ЛЮДИ</span>
+          <span className="login-art__annotation login-art__annotation--two">ПРОЦЕССЫ</span>
+          <span className="login-art__annotation login-art__annotation--three">СООБЩЕСТВО</span>
+        </div>
+        <div className="login-footnote"><span>01 / 04</span><span>КОМАНДА · ЗНАНИЯ · ПРАВИЛА · ПОРЯДОК</span></div>
+      </section>
+      <section className="login-card" aria-label="Вход в демонстрационный портал">
+        <div className="login-card__head"><span className="login-card__icon"><Icon name="lock" size={21} /></span><span className="login-card__number">ДОСТУП / 001</span></div>
+        <p className="login-card__overline">РАБОЧЕЕ МЕСТО СОТРУДНИКА</p>
+        <h2>Войти<br /><span>в портал.</span></h2>
+        <p className="login-card__description">Это интерактивный шаблон. Тестовые данные вводятся автоматически — регистрация и настоящий пароль не нужны.</p>
+        <div className="login-fields">
+          <label className="login-field"><span>ЛОГИН</span><span className="login-input"><span>{login || ' '}</span><i className={!login ? 'is-caret' : ''} /></span></label>
+          <label className="login-field"><span>ПАРОЛЬ</span><span className="login-input"><span>{'•'.repeat(passwordLength)}</span><i className={passwordLength === 0 ? 'is-caret' : ''} /></span></label>
+        </div>
+        <div className="login-progress-copy"><span>{status}</span><b>{progress}%</b></div>
+        <div className="login-progress"><span style={{ width: `${ready ? 100 : progress}%` }} /></div>
+        <button className="button button--primary login-button" type="button" disabled={!ready} onClick={finish}>Открыть рабочее пространство <Icon name="arrow" size={19} /></button>
+        <p className="login-card__disclaimer"><Icon name="info" size={16} /> Данные остаются в браузере и никуда не отправляются.</p>
+      </section>
+    </div>
+    <footer className="login-footer"><span>НЕЗАВИСИМЫЙ КОНЦЕПТ ВЕБ-ПОРТАЛА</span><span>НЕ АФФИЛИРОВАН С DISCORD INC.</span></footer>
+  </main>;
 }
 
 function Sidebar({ active, onNavigate, onLogout, mobileOpen, onClose, displayName }: {
-  active: PortalPage;
-  onNavigate: (page: PortalPage) => void;
-  onLogout: () => void;
-  mobileOpen: boolean;
-  onClose: () => void;
-  displayName: string;
+  active: PortalPage; onNavigate: (page: PortalPage) => void; onLogout: () => void;
+  mobileOpen: boolean; onClose: () => void; displayName: string;
 }) {
   const groups = [...new Set(navigation.map((item) => item.section))];
   const icons: Record<PortalPage, IconName> = { overview: 'overview', team: 'users', guide: 'book', rules: 'shield' };
-
-  return (
-    <>
-      {mobileOpen && <button className="sidebar-backdrop" aria-label="Закрыть меню" onClick={onClose} />}
-      <aside className={`portal-sidebar${mobileOpen ? ' portal-sidebar--open' : ''}`}>
-        <div className="sidebar-top">
-          <a className="sidebar-brand" href="#/overview" onClick={(event) => { event.preventDefault(); onNavigate('overview'); }} aria-label="На главную">
-            <img src={DISCORD_SYMBOL} alt="Discord" />
-            <span><b>STAFF</b><small>PORTAL / CONCEPT</small></span>
-          </a>
-          <button className="icon-button sidebar-close" onClick={onClose} aria-label="Закрыть меню"><Icon name="close" /></button>
-        </div>
-
-        <div className="server-context">
-          <span className="server-context__icon"><img src={DISCORD_SYMBOL} alt="" /></span>
-          <span className="server-context__text"><b>Discord</b><small>Community workspace</small></span>
-          <Icon name="chevron" size={15} />
-        </div>
-
-        <nav className="side-navigation" aria-label="Основная навигация">
-          {groups.map((group, index) => (
-            <div className="nav-group" key={group}>
-              <p className="nav-group__label">{index === 0 ? 'WORKSPACE' : 'RESOURCES'}</p>
-              {navigation.filter((item) => item.section === group).map((item) => (
-                <button key={item.id} className={`nav-link${active === item.id ? ' nav-link--active' : ''}`} onClick={() => onNavigate(item.id)}>
-                  <Icon name={icons[item.id]} size={17} />
-                  <span>{item.label}</span>
-                  {item.id === 'rules' && <span className="nav-link__count">06</span>}
-                </button>
-              ))}
-            </div>
-          ))}
-        </nav>
-
-        <div className="sidebar-spacer" />
-        <div className="sidebar-note">
-          <span className="sidebar-note__symbol"><Icon name="help" size={17} /></span>
-          <div><b>Нужна помощь?</b><p>Начните со справочника и базовых инструкций.</p><button onClick={() => onNavigate('guide')}>Открыть справочник <Icon name="arrow" size={13} /></button></div>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="sidebar-profile">
-            <span className="profile-avatar">{displayName.slice(-2, -1) || 'S'}</span>
-            <span className="sidebar-profile__copy"><b>{displayName}</b><small>Модератор / DEMO</small></span>
-            <button className="icon-button sidebar-logout" aria-label="Выйти из портала" onClick={onLogout}><Icon name="logout" size={17} /></button>
-          </div>
-          <div className="sidebar-build"><span><i /> PREVIEW MODE</span><span>v2.1</span></div>
-        </div>
-      </aside>
-    </>
-  );
+  return <>
+    {mobileOpen && <button className="sidebar-backdrop" aria-label="Закрыть меню" onClick={onClose} />}
+    <aside className={`portal-sidebar${mobileOpen ? ' portal-sidebar--open' : ''}`}>
+      <div className="sidebar-brand-row"><Brand /><button className="icon-button sidebar-close" onClick={onClose} aria-label="Закрыть меню"><Icon name="close" /></button></div>
+      <div className="server-switcher"><span className="server-switcher__symbol"><img src={DISCORD_SYMBOL} alt="" /></span><span><b>Discord</b><small>Пространство команды</small></span><Icon name="chevron" size={17} /></div>
+      <nav className="side-navigation" aria-label="Основная навигация">
+        {groups.map((group, index) => <div className="nav-group" key={group}>
+          <p className="nav-group__label">{index === 0 ? 'РАБОЧЕЕ МЕСТО' : 'БАЗА ЗНАНИЙ'}</p>
+          {navigation.filter((item) => item.section === group).map((item) => <button key={item.id} className={`nav-link${active === item.id ? ' nav-link--active' : ''}`} onClick={() => onNavigate(item.id)}>
+            <Icon name={icons[item.id]} size={20} /><span>{item.label}</span>{active === item.id && <i className="nav-link__active-mark" />}
+          </button>)}
+        </div>)}
+      </nav>
+      <div className="sidebar-help"><span className="sidebar-help__icon"><Icon name="help" size={20} /></span><div><b>Нужна подсказка?</b><p>Все основные процессы собраны в справочнике.</p><button onClick={() => onNavigate('guide')}>Открыть справочник <Icon name="arrow" size={14} /></button></div></div>
+      <div className="sidebar-bottom">
+        <div className="sidebar-user"><span className="user-avatar">{displayName.slice(-2, -1) || 'С'}</span><span><b>{displayName}</b><small>{'Модератор · демо'}</small></span><button className="icon-button" onClick={onLogout} aria-label="Выйти"><Icon name="logout" size={18} /></button></div>
+        <div className="sidebar-mode"><i /> ДЕМОНСТРАЦИОННАЯ ВЕРСИЯ <span>2.2</span></div>
+      </div>
+    </aside>
+  </>;
 }
 
 function Header({ title, onNavigate, onMenu, displayName }: { title: string; onNavigate: (page: PortalPage) => void; onMenu: () => void; displayName: string }) {
@@ -243,241 +193,130 @@ function Header({ title, onNavigate, onMenu, displayName }: { title: string; onN
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const results = useMemo(() => {
-    const normalised = query.trim().toLocaleLowerCase('ru');
-    if (!normalised) return [];
-    return searchItems.filter((item) => `${item.title} ${item.description}`.toLocaleLowerCase('ru').includes(normalised));
+    const normalized = query.trim().toLocaleLowerCase('ru');
+    if (!normalized) return [];
+    return searchItems.filter((item) => `${item.title} ${item.description}`.toLocaleLowerCase('ru').includes(normalized));
   }, [query]);
-
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        setSearchOpen(true);
-        document.getElementById('portal-search')?.focus();
+        event.preventDefault(); setSearchOpen(true); document.getElementById('portal-search')?.focus();
       }
-      if (event.key === 'Escape') {
-        setSearchOpen(false);
-        setNotificationsOpen(false);
-      }
+      if (event.key === 'Escape') { setSearchOpen(false); setNotificationsOpen(false); }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
-
-  const chooseResult = (page: PortalPage) => {
-    onNavigate(page);
-    setQuery('');
-    setSearchOpen(false);
-  };
-
-  return (
-    <header className="portal-header">
-      <div className="portal-header__left">
-        <button className="icon-button mobile-menu-button" aria-label="Открыть меню" onClick={onMenu}><Icon name="menu" /></button>
-        <div className="breadcrumbs"><span>Discord</span><Icon name="chevron" size={14} /><strong>{title}</strong></div>
+  const chooseResult = (page: PortalPage) => { onNavigate(page); setQuery(''); setSearchOpen(false); };
+  return <header className="portal-header">
+    <div className="portal-header__start"><button className="icon-button mobile-menu-button" aria-label="Открыть меню" onClick={onMenu}><Icon name="menu" /></button><div className="breadcrumbs"><span>Discord</span><Icon name="chevron" size={15} /><strong>{title}</strong></div></div>
+    <div className="portal-header__end">
+      <div className={`global-search${searchOpen ? ' global-search--open' : ''}`}><Icon name="search" size={19} /><input id="portal-search" value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => setSearchOpen(true)} onKeyDown={(event) => { if (event.key === 'Escape') setSearchOpen(false); if (event.key === 'Enter' && results[0]) chooseResult(results[0].page); }} placeholder="Найти раздел или правило" aria-label="Поиск по порталу" /><kbd>⌘ K</kbd>
+        {searchOpen && query.trim() && <div className="search-results"><p className="dropdown-label">РЕЗУЛЬТАТЫ</p>{results.length ? results.map((item) => <button key={item.title} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseResult(item.page)}><span className="search-result-icon"><Icon name="file" size={17} /></span><span><b>{item.title}</b><small>{item.description}</small></span><Icon name="arrow" size={16} /></button>) : <p className="search-empty">Ничего не найдено. Попробуйте другой запрос.</p>}</div>}
       </div>
-      <div className="portal-header__right">
-        <div className={`global-search${searchOpen ? ' global-search--open' : ''}`}>
-          <Icon name="search" size={16} />
-          <input id="portal-search" value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => setSearchOpen(true)} onKeyDown={(event) => { if (event.key === 'Escape') setSearchOpen(false); if (event.key === 'Enter' && results[0]) chooseResult(results[0].page); }} placeholder="Поиск по порталу" aria-label="Поиск по порталу" />
-          <kbd>⌘ K</kbd>
-          {searchOpen && query.trim() && <div className="search-results"><p className="dropdown-label">РЕЗУЛЬТАТЫ ПОИСКА</p>{results.length ? results.map((item) => <button key={item.title} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseResult(item.page)}><span className="search-result-icon"><Icon name="file" size={15} /></span><span><b>{item.title}</b><small>{item.description}</small></span><Icon name="arrow" size={14} /></button>) : <p className="search-empty">Ничего не найдено</p>}</div>}
-        </div>
-        <div className="header-action-wrap">
-          <button className={`icon-button notification-button${notificationsOpen ? ' icon-button--active' : ''}`} onClick={() => setNotificationsOpen((value) => !value)} aria-label="Уведомления"><Icon name="bell" size={18} /><i /></button>
-          {notificationsOpen && <div className="notification-popover"><div className="popover-heading"><b>Уведомления</b><span>02 новых</span></div><div className="notification-item"><span className="notification-marker notification-marker--blue" /><span><b>Справочник обновлён</b><small>В материалы добавлены новые разделы.</small><time>Сегодня, 10:30</time></span></div><div className="notification-item"><span className="notification-marker notification-marker--violet" /><span><b>Добро пожаловать</b><small>Вы вошли в демонстрационный портал.</small><time>Только что</time></span></div></div>}
-        </div>
-        <span className="header-divider" />
-        <div className="header-user"><span className="profile-avatar profile-avatar--small">{displayName.slice(-2, -1) || 'S'}</span><span><b>{displayName}</b><small>Модератор</small></span><Icon name="chevron" size={14} /></div>
+      <div className="header-action-wrap"><button className={`icon-button notification-button${notificationsOpen ? ' icon-button--active' : ''}`} onClick={() => setNotificationsOpen((value) => !value)} aria-label="Уведомления"><Icon name="bell" size={20} /><i /></button>
+        {notificationsOpen && <div className="notification-popover"><div className="popover-heading"><b>Уведомления</b><span>2 новых</span></div><div className="notification-item"><span className="notification-marker notification-marker--blue" /><span><b>Справочник обновлён</b><small>В материалы добавлены описания ролей и процессов.</small><time>Сегодня, 10:30</time></span></div><div className="notification-item"><span className="notification-marker notification-marker--violet" /><span><b>Добро пожаловать</b><small>Демонстрационная сессия успешно открыта.</small><time>Только что</time></span></div></div>}
       </div>
-      {searchOpen && <button className="popover-dismiss" aria-label="Закрыть поиск" onClick={() => setSearchOpen(false)} />}
-      {notificationsOpen && <button className="notification-dismiss" aria-label="Закрыть уведомления" onClick={() => setNotificationsOpen(false)} />}
-    </header>
-  );
+      <span className="header-separator" />
+      <div className="header-profile"><span className="user-avatar user-avatar--small">{displayName.slice(-2, -1) || 'С'}</span><span><b>{displayName}</b><small>Модератор</small></span></div>
+    </div>
+    {searchOpen && <button className="popover-dismiss" aria-label="Закрыть поиск" onClick={() => setSearchOpen(false)} />}
+    {notificationsOpen && <button className="notification-dismiss" aria-label="Закрыть уведомления" onClick={() => setNotificationsOpen(false)} />}
+  </header>;
 }
 
-function PageHeading({ eyebrow, title, description, aside }: { eyebrow: string; title: ReactNode; description: string; aside?: ReactNode }) {
-  return <div className="page-heading"><div><p className="micro-label"><span className="micro-label__line" /> {eyebrow}</p><h1>{title}</h1><p className="page-heading__description">{description}</p></div>{aside && <div className="page-heading__aside">{aside}</div>}</div>;
-}
-
-function Stat({ value, label, note, accent }: { value: string; label: string; note: string; accent: string }) {
-  return <div className={`stat stat--${accent}`}><div className="stat__value">{value}</div><div className="stat__label">{label}</div><div className="stat__note">{note}</div></div>;
+function Eyebrow({ children }: { children: ReactNode }) { return <p className="eyebrow"><span />{children}</p>; }
+function PageHeading({ number, label, title, description, aside }: { number: string; label: string; title: ReactNode; description: string; aside?: ReactNode }) {
+  return <section className="page-heading"><div className="page-heading__title"><Eyebrow>{label}</Eyebrow><h1>{title}</h1><p>{description}</p></div><div className="page-heading__side"><span>{number}<i>/ 04</i></span>{aside}</div></section>;
 }
 
 function OverviewPage({ session, onNavigate }: { session: DemoSession; onNavigate: (page: PortalPage) => void }) {
   const today = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  return <div className="page page--overview">
+    <section className="overview-hero">
+      <div className="overview-hero__main"><Eyebrow>СЕГОДНЯ · {today.toLocaleUpperCase('ru')}</Eyebrow><h1>Команда —<br /><em>сердце</em> сообщества.</h1><p>Привет, {session.displayName}. Здесь собраны люди, знания и правила, которые помогают поддерживать порядок и здоровую атмосферу на сервере.</p><div className="hero-actions"><button className="button button--primary" onClick={() => onNavigate('guide')}>Перейти к справочнику <Icon name="arrow" size={19} /></button><button className="button button--text" onClick={() => onNavigate('team')}>Посмотреть команду <Icon name="arrow" size={18} /></button></div></div>
+      <div className="overview-hero__visual" aria-hidden="true"><div className="hero-visual__grid" /><div className="hero-visual__ring hero-visual__ring--one" /><div className="hero-visual__ring hero-visual__ring--two" /><div className="hero-visual__ring hero-visual__ring--three" /><div className="hero-visual__disc"><img src={DISCORD_SYMBOL} alt="" /></div><span className="hero-visual__tag hero-visual__tag--top">ЛЮДИ И ПРОЦЕССЫ</span><span className="hero-visual__tag hero-visual__tag--bottom">ОДНО ОБЩЕЕ ПРОСТРАНСТВО</span><span className="hero-visual__cross hero-visual__cross--one">+</span><span className="hero-visual__cross hero-visual__cross--two">+</span></div>
+      <div className="overview-hero__index"><b>01</b><span>—</span><small>ОБЗОР</small></div>
+    </section>
 
-  return (
-    <div className="page page--overview">
-      <section className="dashboard-hero">
-        <div className="dashboard-hero__copy">
-          <p className="micro-label"><span className="micro-label__line" /> STAFF OPERATIONS / OVERVIEW</p>
-          <p className="dashboard-hero__date">{today}</p>
-          <h1>Всё для команды.<br /><span>В одном пространстве.</span></h1>
-          <p className="dashboard-hero__description">Привет, {session.displayName}. Здесь собраны материалы и инструменты для повседневной работы сообщества.</p>
-          <div className="dashboard-hero__actions"><button className="button button--primary" onClick={() => onNavigate('guide')}>Начать с инструкций <Icon name="arrow" size={16} /></button><button className="button button--quiet" onClick={() => onNavigate('team')}>Структура команды</button></div>
-          <div className="dashboard-hero__meta"><span><i /> DEMO WORKSPACE</span><span>ROLE / {session.role.toUpperCase()}</span></div>
-        </div>
-        <div className="dashboard-hero__art" aria-hidden="true">
-          <div className="hero-art__caption hero-art__caption--top">COMMUNITY / OPERATIONS</div>
-          <div className="hero-art__orbit hero-art__orbit--one" />
-          <div className="hero-art__orbit hero-art__orbit--two" />
-          <div className="hero-art__orbit hero-art__orbit--three" />
-          <div className="hero-art__core"><img src={DISCORD_SYMBOL} alt="" /></div>
-          <span className="hero-art__node hero-art__node--one" />
-          <span className="hero-art__node hero-art__node--two" />
-          <span className="hero-art__node hero-art__node--three" />
-          <div className="hero-art__caption hero-art__caption--bottom"><span>01</span><span>PEOPLE MAKE THE COMMUNITY</span></div>
-        </div>
-        <span className="dashboard-hero__index">01 <i>—</i> 04</span>
+    <section className="numbers-section"><div className="section-heading"><div><Eyebrow>КОМАНДА В ЦИФРАХ</Eyebrow><h2>Общая картина.</h2></div><span className="demo-caption"><i /> ВСЕ ПОКАЗАТЕЛИ ПРИМЕРНЫЕ</span></div>
+      <div className="numbers-grid"><article className="number-cell number-cell--large"><span className="number-cell__label">Сотрудников в команде</span><strong>18</strong><span className="number-cell__note">Условный размер команды</span></article><article className="number-cell"><span className="number-cell__label">Сейчас на связи</span><strong>07</strong><span className="number-cell__note"><i className="status-dot" /> Пример текущего статуса</span></article><article className="number-cell"><span className="number-cell__label">Открытые обращения</span><strong>04</strong><span className="number-cell__note">Демонстрационная очередь</span></article><article className="number-cell"><span className="number-cell__label">Среднее время ответа</span><strong>12<span>м</span></strong><span className="number-cell__note">Условный показатель</span></article></div>
+    </section>
+
+    <div className="overview-content-grid">
+      <section className="updates-section"><div className="section-heading section-heading--line"><div><Eyebrow>ЧТО НОВОГО</Eyebrow><h2>Объявления.</h2></div><button className="text-link" onClick={() => onNavigate('guide')}>Все материалы <Icon name="arrow" size={17} /></button></div>
+        <div className="announcement-list">{announcements.map((item, index) => <article className="announcement-item" key={item.title}><span className="announcement-item__number">0{index + 1}</span><div className="announcement-item__content"><div className="announcement-item__meta"><span className={`announcement-tag announcement-tag--${item.tone}`}>{item.category}</span><time>{item.date}</time></div><h3>{item.title}</h3><p>{item.body}</p></div><button className="circle-arrow" aria-label={`Открыть: ${item.title}`} onClick={() => onNavigate('guide')}><Icon name="arrow" size={19} /></button></article>)}</div>
       </section>
-
-      <div className="section-intro"><div><p className="micro-label">AT A GLANCE</p><h2>Состояние команды</h2></div><span className="sample-label">ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ</span></div>
-      <section className="stats-row" aria-label="Демонстрационная статистика">
-        <Stat value="18" label="Сотрудников" note="пример состава" accent="violet" />
-        <Stat value="07" label="На связи" note="демо-статус" accent="blue" />
-        <Stat value="04" label="Обращения" note="пример очереди" accent="coral" />
-        <Stat value="12m" label="Время ответа" note="условный показатель" accent="mint" />
-      </section>
-
-      <div className="overview-grid">
-        <section className="content-block announcements-block">
-          <div className="block-heading"><div><p className="micro-label">LATEST UPDATES / 01</p><h2>Объявления</h2></div><button className="inline-link" onClick={() => onNavigate('guide')}>Все материалы <Icon name="arrow" size={14} /></button></div>
-          <div className="announcement-list">{announcements.map((item, index) => <article className="announcement-row" key={item.title}><span className="announcement-row__index">0{index + 1}</span><div className="announcement-row__main"><div className="announcement-row__meta"><span className={`announcement-category announcement-category--${item.tone}`}>{item.category}</span><time>{item.date}</time></div><h3>{item.title}</h3><p>{item.body}</p></div><button className="row-arrow" aria-label={`Открыть: ${item.title}`} onClick={() => onNavigate('guide')}><Icon name="arrow" size={16} /></button></article>)}</div>
-        </section>
-
-        <aside className="overview-side">
-          <section className="team-pulse">
-            <div className="block-heading block-heading--compact"><div><p className="micro-label">TEAM PULSE / 02</p><h2>Команда</h2></div><span className="pulse-live"><i /> LIVE DEMO</span></div>
-            <div className="team-pulse__numbers"><strong>07<span>/18</span></strong><p>сотрудников<br />отмечены онлайн</p></div>
-            <div className="avatar-stack"><span className="mini-avatar mini-avatar--one">MK</span><span className="mini-avatar mini-avatar--two">AN</span><span className="mini-avatar mini-avatar--three">ST</span><span className="mini-avatar mini-avatar--four">+4</span><span className="avatar-stack__caption">7 на связи</span></div>
-            <div className="pulse-bar"><span /></div>
-            <button className="inline-link" onClick={() => onNavigate('team')}>Состав команды <Icon name="arrow" size={14} /></button>
-          </section>
-
-          <section className="quick-access">
-            <div className="block-heading block-heading--compact"><div><p className="micro-label">QUICK ACCESS / 03</p><h2>Быстрый доступ</h2></div></div>
-            <button className="quick-link" onClick={() => onNavigate('team')}><span className="quick-link__icon quick-link__icon--blue"><Icon name="users" size={17} /></span><span><b>Команда</b><small>Роли и обязанности</small></span><Icon name="chevron" size={16} /></button>
-            <button className="quick-link" onClick={() => onNavigate('guide')}><span className="quick-link__icon quick-link__icon--violet"><Icon name="book" size={17} /></span><span><b>Справочник</b><small>Инструкции и FAQ</small></span><Icon name="chevron" size={16} /></button>
-            <button className="quick-link" onClick={() => onNavigate('rules')}><span className="quick-link__icon quick-link__icon--coral"><Icon name="shield" size={17} /></span><span><b>Правила</b><small>Стандарты команды</small></span><Icon name="chevron" size={16} /></button>
-          </section>
-        </aside>
-
-        <section className="content-block activity-block">
-          <div className="block-heading"><div><p className="micro-label">RECENT ACTIVITY / 04</p><h2>Последние события</h2></div><span className="sample-label">SAMPLE FEED</span></div>
-          <div className="activity-feed">{activity.map((item) => <div className="activity-row" key={`${item.initials}-${item.time}`}><span className={`activity-avatar activity-avatar--${item.color}`}>{item.initials}</span><div className="activity-row__body"><b>{item.name}</b><span>{item.action}</span></div><time>{item.time}</time></div>)}</div>
-          <p className="activity-disclaimer"><Icon name="info" size={13} /> События и профили приведены исключительно для демонстрации интерфейса.</p>
-        </section>
-
-        <section className="portal-state">
-          <div className="portal-state__top"><span className="portal-state__icon"><Icon name="activity" size={18} /></span><span className="pulse-live"><i /> LOCAL</span></div>
-          <p className="micro-label">SYSTEM STATUS</p>
-          <h2>Портал<br /><span>активен.</span></h2>
-          <p className="portal-state__copy">Интерфейс работает локально. Серверная часть пока не подключена.</p>
-          <div className="portal-state__rows"><div><span>API</span><b>Не настроено</b></div><div><span>Хранение</span><b>Локально</b></div><div><span>Авторизация</span><b>Имитация</b></div></div>
-          <span className="portal-state__watermark">D</span>
-        </section>
-      </div>
+      <aside className="overview-aside"><section className="team-snapshot"><div className="team-snapshot__top"><span>СОСТАВ КОМАНДЫ</span><span className="snapshot-status"><i /> ПРИМЕР</span></div><div className="team-snapshot__count"><strong>07</strong><span>из 18<br />на связи</span></div><div className="snapshot-bars"><i /><i /><i /><i /><i /><i /><i /></div><div className="team-snapshot__bottom"><span>Активность команды</span><b>условно 39%</b></div><button className="snapshot-link" onClick={() => onNavigate('team')}>Изучить структуру <Icon name="arrow" size={16} /></button></section>
+        <section className="aside-quote"><span className="aside-quote__mark">“</span><p>Сильное сообщество начинается с людей, которые готовы о нём заботиться.</p><span className="aside-quote__byline">ПРИНЦИП КОМАНДНОЙ РАБОТЫ</span></section></aside>
     </div>
-  );
+    <section className="activity-section"><div className="section-heading section-heading--line"><div><Eyebrow>ПОСЛЕДНИЕ ДЕЙСТВИЯ</Eyebrow><h2>Жизнь команды.</h2></div><span className="activity-note">ИСТОРИЯ ДЛЯ ПРИМЕРА</span></div><div className="activity-list">{activity.map((item, index) => <article className="activity-row" key={`${item.initials}-${item.time}`}><span className={`activity-avatar activity-avatar--${item.color}`}>{item.initials}</span><p><b>{item.name}</b> {item.action}</p><time>{item.time}</time><span className="activity-row__index">0{index + 1}</span></article>)}</div></section>
+  </div>;
 }
 
 function TeamPage() {
-  return (
-    <div className="page">
-      <PageHeading eyebrow="PEOPLE / TEAM DIRECTORY" title={<>Команда, которая<br />держит всё вместе.</>} description="Пример структуры сотрудников, ролей и зон ответственности условного Discord-сервера." aside={<span className="heading-index">02 <i>/</i> 04</span>} />
-      <div className="page-callout"><span className="page-callout__symbol"><Icon name="info" size={17} /></span><p>Названия ролей, уровни доступа и обязанности — демонстрационный шаблон. Измените их под процессы конкретного сообщества.</p><span className="sample-label">SAMPLE DATA</span></div>
-      <div className="team-summary"><div><p className="micro-label">ORGANISATION / 01</p><h2>Роли и направления</h2></div><span>06 POSITION TYPES <i>·</i> TEMPLATE</span></div>
-      <div className="role-list">{roles.map((role) => <article className="role-row" key={role.level}><span className="role-row__number">{role.level}</span><div className="role-row__title"><h3>{role.name}</h3><span>{role.english}</span></div><div className="role-row__description"><p>{role.description}</p><ul>{role.responsibilities.map((item) => <li key={item}><Icon name="check" size={13} />{item}</li>)}</ul></div><span className={`role-tag role-tag--${role.tone}`}>{role.label}</span></article>)}</div>
-      <div className="team-bottom-note"><span className="team-bottom-note__line" /><p>Хорошая структура не усложняет работу. Она помогает каждому понимать свою роль.</p></div>
-    </div>
-  );
+  return <div className="page page--inner">
+    <PageHeading number="02" label="ЛЮДИ И РОЛИ" title={<>За порядком<br /><em>стоят люди.</em></>} description="Пример структуры команды условного Discord-сервера: кто за что отвечает и к кому обращаться по разным вопросам." aside={<div className="heading-stat"><b>06</b><span>ТИПОВ РОЛЕЙ<br />В ПРИМЕРЕ</span></div>} />
+    <div className="page-note"><span className="page-note__icon"><Icon name="info" size={20} /></span><p>Все должности, полномочия и обязанности ниже — демонстрационные. Адаптируйте их под устройство конкретного сообщества.</p><span>ШАБЛОН</span></div>
+    <div className="team-intro"><div><Eyebrow>ОРГАНИЗАЦИЯ РАБОТЫ</Eyebrow><h2>От общего курса<br />до ежедневной помощи.</h2></div><p>У каждой роли есть своя зона ответственности. Понятные границы помогают не дублировать работу и быстрее решать вопросы.</p></div>
+    <div className="role-directory">{roles.map((role) => <article className={`role-entry role-entry--${role.tone}`} key={role.level}><span className="role-entry__number">{role.level}</span><div className="role-entry__identity"><h3>{role.name}</h3><span>{role.label}</span></div><div className="role-entry__description"><p>{role.description}</p><ul>{role.responsibilities.map((item) => <li key={item}><Icon name="check" size={16} />{item}</li>)}</ul></div><span className="role-entry__arrow"><Icon name="arrow" size={20} /></span></article>)}</div>
+    <div className="team-closing"><span className="team-closing__symbol"><img src={DISCORD_SYMBOL} alt="" /></span><p>Хорошая структура не усложняет работу.<br /><b>Она помогает каждому понимать свою роль.</b></p></div>
+  </div>;
 }
 
 function GuidePage({ onNavigate }: { onNavigate: (page: PortalPage) => void }) {
   const [completed, setCompleted] = useState<number[]>([]);
   const guideSteps = [
-    { title: 'Изучите правила команды', text: 'Прочитайте стандарты общения, правила конфиденциальности и порядок работы с обращениями.', page: 'rules' as PortalPage, action: 'Перейти к правилам' },
-    { title: 'Разберитесь в структуре ролей', text: 'Посмотрите, кто отвечает за разные направления и к кому обращаться по конкретным вопросам.', page: 'team' as PortalPage, action: 'Посмотреть роли' },
+    { title: 'Изучите правила команды', text: 'Ознакомьтесь со стандартами общения, конфиденциальностью и порядком работы с обращениями.', page: 'rules' as PortalPage, action: 'Перейти к правилам' },
+    { title: 'Разберитесь в структуре ролей', text: 'Посмотрите, кто отвечает за разные направления и к кому обращаться по конкретным вопросам.', page: 'team' as PortalPage, action: 'Посмотреть команду' },
     { title: 'Уточните свои обязанности', text: 'Согласуйте задачи, границы полномочий и формат отчётности с ответственным сотрудником.', page: 'team' as PortalPage, action: 'Открыть структуру' },
-    { title: 'Познакомьтесь с процессами', text: 'Используйте рабочие каналы по назначению и передавайте сложные случаи по установленному порядку.', page: 'rules' as PortalPage, action: 'Открыть материалы' },
+    { title: 'Освойте рабочие процессы', text: 'Используйте каналы по назначению и передавайте сложные случаи по установленному порядку.', page: 'rules' as PortalPage, action: 'Открыть материалы' },
   ];
-
-  return (
-    <div className="page">
-      <PageHeading eyebrow="KNOWLEDGE / HANDBOOK" title={<>Сначала — разобраться.<br />Затем — действовать.</>} description="Короткий маршрут для новых сотрудников и справочная информация по основным процессам команды." aside={<span className="heading-index">03 <i>/</i> 04</span>} />
-      <div className="handbook-layout">
-        <section className="handbook-main">
-          <div className="handbook-main__top"><div><p className="micro-label">ONBOARDING / CHECKLIST</p><h2>Первые шаги</h2></div><div className="checklist-count"><strong>{String(completed.length).padStart(2, '0')}</strong><span>/ 04<br />DONE</span></div></div>
-          <div className="checklist-progress"><span style={{ width: `${completed.length / guideSteps.length * 100}%` }} /></div>
-          <div className="guide-steps">{guideSteps.map((step, index) => { const isDone = completed.includes(index); return <article className={`guide-step${isDone ? ' guide-step--done' : ''}`} key={step.title}><button className="guide-step__check" aria-label={isDone ? 'Отметить как невыполненное' : 'Отметить как выполненное'} onClick={() => setCompleted((current) => isDone ? current.filter((item) => item !== index) : [...current, index])}>{isDone && <Icon name="check" size={15} />}</button><div className="guide-step__body"><div className="guide-step__meta"><span>STEP / {String(index + 1).padStart(2, '0')}</span>{isDone && <span className="completed-label">COMPLETED</span>}</div><h3>{step.title}</h3><p>{step.text}</p><button className="inline-link" onClick={() => onNavigate(step.page)}>{step.action} <Icon name="arrow" size={14} /></button></div></article>; })}</div>
-        </section>
-
-        <aside className="handbook-side">
-          <div className="handbook-feature"><span className="handbook-feature__top">FIELD NOTES <i>01—04</i></span><div className="handbook-feature__symbol"><img src={DISCORD_SYMBOL} alt="" /></div><p className="micro-label">KNOWLEDGE BASE</p><h2>Всё важное.<br /><em>По полочкам.</em></h2><p>Демонстрационный набор документов для организации работы команды.</p><span className="handbook-feature__bottom">STAFF / HANDBOOK</span></div>
-          <div className="faq-panel"><div className="block-heading block-heading--compact"><div><p className="micro-label">COMMON QUESTIONS</p><h2>Частые вопросы</h2></div></div><details><summary>К кому обращаться с вопросом?</summary><p>Начните с руководителя направления или старшего сотрудника, отвечающего за нужную тему.</p></details><details><summary>Что делать, если задача непонятна?</summary><p>Запросите уточнение, ожидаемый результат и срок выполнения до начала работы.</p></details><details><summary>Можно ли менять правила?</summary><p>Предложения можно передавать ответственным за документацию. Изменения должны быть согласованы.</p></details></div>
-        </aside>
-      </div>
-    </div>
-  );
+  return <div className="page page--inner">
+    <PageHeading number="03" label="БАЗА ЗНАНИЙ" title={<>Сначала понять.<br /><em>Потом действовать.</em></>} description="Короткий маршрут для новых сотрудников и практические материалы для повседневной работы." aside={<div className="heading-stat"><b>{String(completed.length).padStart(2, '0')}</b><span>ИЗ 04 ШАГОВ<br />ВЫПОЛНЕНО</span></div>} />
+    <div className="guide-layout"><section className="guide-checklist"><div className="guide-checklist__heading"><div><Eyebrow>ВВОДНЫЙ МАРШРУТ</Eyebrow><h2>Первые шаги.</h2></div><div className="guide-progress-value"><b>{Math.round(completed.length / guideSteps.length * 100)}%</b><span>ГОТОВНОСТЬ</span></div></div><div className="guide-progress"><span style={{ width: `${completed.length / guideSteps.length * 100}%` }} /></div>
+      <div className="guide-steps">{guideSteps.map((step, index) => { const isDone = completed.includes(index); return <article className={`guide-step${isDone ? ' guide-step--done' : ''}`} key={step.title}><button className="guide-step__toggle" aria-label={isDone ? 'Отметить шаг невыполненным' : 'Отметить шаг выполненным'} onClick={() => setCompleted((current) => isDone ? current.filter((item) => item !== index) : [...current, index])}>{isDone ? <Icon name="check" size={18} /> : <span />}</button><div className="guide-step__content"><div className="guide-step__topline"><span>ШАГ {String(index + 1).padStart(2, '0')}</span>{isDone && <b>ВЫПОЛНЕНО</b>}</div><h3>{step.title}</h3><p>{step.text}</p><button className="text-link" onClick={() => onNavigate(step.page)}>{step.action} <Icon name="arrow" size={16} /></button></div><span className="guide-step__number">0{index + 1}</span></article>; })}</div>
+    </section><aside className="guide-aside"><div className="guide-feature"><div className="guide-feature__orb"><img src={DISCORD_SYMBOL} alt="" /></div><Eyebrow>СПРАВОЧНЫЕ МАТЕРИАЛЫ</Eyebrow><h2>Важное.<br /><em>Без лишнего.</em></h2><p>Пример базы знаний, в которой новые сотрудники могут найти ответы и разобраться в рабочих процессах.</p><span className="guide-feature__footer">ПАМЯТКА СОТРУДНИКА <i>01—04</i></span></div>
+      <div className="faq-block"><Eyebrow>ЧАСТО СПРАШИВАЮТ</Eyebrow><h2>Коротко о главном.</h2><details><summary>К кому обращаться с вопросом?</summary><p>Начните с руководителя направления или старшего сотрудника, отвечающего за нужную тему.</p></details><details><summary>Что делать, если задача непонятна?</summary><p>До начала работы уточните ожидаемый результат, контекст и срок выполнения.</p></details><details><summary>Можно ли менять правила?</summary><p>Предложения передаются ответственным за документацию. Изменения вносятся после согласования.</p></details></div></aside></div>
+  </div>;
 }
 
 function RulesPage() {
-  return (
-    <div className="page">
-      <PageHeading eyebrow="POLICY / INTERNAL STANDARDS" title={<>Общие правила.<br />Понятные принципы.</>} description="Пример внутренних стандартов поведения, коммуникации и работы с информацией." aside={<span className="heading-index">04 <i>/</i> 04</span>} />
-      <div className="rules-banner"><div className="rules-banner__icon"><Icon name="shield" size={24} /></div><div><p className="micro-label">THE BASELINE</p><h2>Уважение. Последовательность. Ответственность.</h2><p>Этот документ — редактируемый пример для шаблона портала, а не официальные правила Discord или какого-либо сервера.</p></div><span className="sample-label">TEMPLATE</span></div>
-      <div className="rules-list">{rules.map((rule) => <article className="rule-row" key={rule.number}><span className="rule-row__number">{rule.number}</span><div className="rule-row__main"><h2>{rule.title}</h2><p>{rule.description}</p></div><ul>{rule.points.map((point) => <li key={point}><span />{point}</li>)}</ul></article>)}</div>
-      <div className="rules-note"><Icon name="info" size={16} /><p>Перед использованием замените примерные положения на собственные правила сообщества и согласуйте их с ответственными лицами.</p></div>
-    </div>
-  );
+  return <div className="page page--inner">
+    <PageHeading number="04" label="ВНУТРЕННИЕ СТАНДАРТЫ" title={<>Общие правила.<br /><em>Общие ориентиры.</em></>} description="Пример принципов поведения, общения и работы с информацией внутри команды." aside={<div className="heading-stat"><b>06</b><span>ОСНОВНЫХ<br />ПРИНЦИПОВ</span></div>} />
+    <section className="rules-manifesto"><span className="rules-manifesto__icon"><Icon name="shield" size={28} /></span><div><Eyebrow>ОСНОВА РАБОТЫ</Eyebrow><h2>Уважение. Последовательность. Ответственность.</h2><p>Это пример внутреннего документа для шаблона портала. Он не является правилами Discord или какого-либо реального сервера.</p></div><span className="rules-manifesto__stamp">ШАБЛОН<br />01 / 06</span></section>
+    <div className="rules-directory">{rules.map((rule) => <article className="rule-entry" key={rule.number}><span className="rule-entry__number">{rule.number}</span><div className="rule-entry__main"><h2>{rule.title}</h2><p>{rule.description}</p></div><ul>{rule.points.map((point) => <li key={point}><span />{point}</li>)}</ul><span className="rule-entry__mark"><Icon name="plus" size={20} /></span></article>)}</div>
+    <div className="rules-warning"><Icon name="info" size={19} /><p>Перед использованием замените примерные положения на собственные правила сообщества и согласуйте их с ответственными лицами.</p></div>
+  </div>;
 }
 
 function PortalFooter() {
-  return <footer className="portal-footer"><div><span className="portal-footer__brand">DISCORD STAFF PORTAL <i>—</i> CONCEPT TEMPLATE</span><p>Независимый концепт веб-портала для условной команды Discord-сервера. Не аффилирован с Discord Inc., не поддерживается и не одобряется ею. Discord является товарным знаком Discord Inc.</p></div><a href="https://discord.com/branding" target="_blank" rel="noreferrer">Brand resources <Icon name="external" size={13} /></a></footer>;
+  return <footer className="portal-footer"><div className="portal-footer__brand"><Brand compact /><span>НЕЗАВИСИМЫЙ КОНЦЕПТ</span></div><p>Это демонстрационный веб-портал для условной команды Discord-сервера. Проект не аффилирован с Discord Inc., не поддерживается и не одобряется ею. Discord — товарный знак Discord Inc.</p><a href="https://discord.com/branding" target="_blank" rel="noreferrer">Материалы бренда Discord <Icon name="external" size={15} /></a></footer>;
 }
 
 function PortalLayout({ session, page, onNavigate, onLogout }: { session: DemoSession; page: PortalPage; onNavigate: (page: PortalPage) => void; onLogout: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const title = navigation.find((item) => item.id === page)?.label ?? 'Обзор';
-  const navigate = (nextPage: PortalPage) => {
-    navigateTo(nextPage, onNavigate);
-    setMobileOpen(false);
-  };
-
-  return (
-    <div className="portal-shell">
-      <Sidebar active={page} onNavigate={navigate} onLogout={onLogout} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} displayName={session.displayName} />
-      <div className="portal-main">
-        <Header title={title} onNavigate={navigate} onMenu={() => setMobileOpen(true)} displayName={session.displayName} />
-        <main className="content-area">{page === 'overview' && <OverviewPage session={session} onNavigate={navigate} />}{page === 'team' && <TeamPage />}{page === 'guide' && <GuidePage onNavigate={navigate} />}{page === 'rules' && <RulesPage />}<PortalFooter /></main>
-      </div>
-    </div>
-  );
+  const navigate = (nextPage: PortalPage) => { navigateTo(nextPage, onNavigate); setMobileOpen(false); };
+  return <div className="portal-shell"><Sidebar active={page} onNavigate={navigate} onLogout={onLogout} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} displayName={session.displayName} /><div className="portal-main"><Header title={title} onNavigate={navigate} onMenu={() => setMobileOpen(true)} displayName={session.displayName} /><main className="content-area">{page === 'overview' && <OverviewPage session={session} onNavigate={navigate} />}{page === 'team' && <TeamPage />}{page === 'guide' && <GuidePage onNavigate={navigate} />}{page === 'rules' && <RulesPage />}<PortalFooter /></main></div></div>;
 }
 
 export default function App() {
   const [session, setSession] = useState<DemoSession | null>(readSession);
   const [page, setPage] = useState<PortalPage>(pageFromHash);
-
   useEffect(() => {
     const syncPage = () => setPage(pageFromHash());
     window.addEventListener('hashchange', syncPage);
     if (!window.location.hash) window.location.hash = '/overview';
     return () => window.removeEventListener('hashchange', syncPage);
   }, []);
-
   const completeLogin = (nextSession: DemoSession) => {
     try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession)); } catch { /* Storage is optional in demo mode. */ }
-    setSession(nextSession);
-    navigateTo('overview', setPage);
+    setSession(nextSession); navigateTo('overview', setPage);
   };
-
   const logout = () => {
     try { sessionStorage.removeItem(SESSION_KEY); } catch { /* Storage is optional in demo mode. */ }
-    setSession(null);
-    setPage('overview');
+    setSession(null); setPage('overview');
   };
-
   return session ? <PortalLayout session={session} page={page} onNavigate={setPage} onLogout={logout} /> : <LoginScreen onComplete={completeLogin} />;
 }
