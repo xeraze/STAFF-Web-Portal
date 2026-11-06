@@ -1,4 +1,4 @@
-# Discord Staff Portal — concept template
+# Discord Staff WebPortal
 
 A small, frontend-only staff portal concept for a hypothetical Discord community. It is intentionally generic: no server name, community identity, or official Discord branding is assumed.
 
@@ -7,22 +7,6 @@ A small, frontend-only staff portal concept for a hypothetical Discord community
 - React 19 + TypeScript
 - Vite 8
 - CSS (custom responsive design system; no UI framework required)
-
-## Run locally
-
-Requires Node.js 22.12+ (or 20.19+).
-
-```bash
-npm install
-npm run dev
-```
-
-Create a production build:
-
-```bash
-npm run build
-npm run preview
-```
 
 ## Demo behavior
 
