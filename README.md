@@ -1,43 +1,94 @@
-# Discord Staff WebPortal
+# Discord Staff Portal - концепт
 
-A small, frontend-only staff portal concept for a hypothetical Discord community. It is intentionally generic: no server name, community identity, or official Discord branding is assumed.
+Независимый демонстрационный шаблон веб-портала для команды условного Discord-сервера. Проект показывает возможную структуру внутреннего пространства сотрудников: обзор, команду, справочные материалы и правила.
 
-## Stack
+Это не официальный продукт Discord и не портал конкретного сервера.
 
-- React 19 + TypeScript
+## Технологии
+
+- React 19
+- TypeScript 5
 - Vite 8
-- CSS (custom responsive design system; no UI framework required)
+- Собственные CSS-стили без UI-фреймворка
 
-## Demo behavior
+## Возможности
 
-- The login screen types a generated test username and a masked sample password, then opens the demo workspace.
-- The demo session is stored in `sessionStorage` and is cleared when the user logs out or closes the browser tab.
-- All profile details, metrics, announcements, team activity, and documentation are sample content.
-- No credentials are verified, transmitted, or stored on a server. There is no backend, database, Discord API connection, or real access control.
-- The onboarding checklist is local UI state and is not persisted.
+- Автоматический демонстрационный вход: логин генерируется в браузере, а поле пароля заполняется маскированными символами.
+- Раздел «Обзор»: пример статистики, объявлений и активности.
+- Раздел «Команда»: шаблон ролей и зон ответственности.
+- Раздел «Справочник»: вводные материалы и контрольный список.
+- Раздел «Правила»: пример внутреннего регламента.
+- Поиск по разделам и материалам.
+- Адаптивная компоновка для узких экранов.
 
-## Main sections
+## Важно о демонстрационном режиме
 
-- **Overview** — sample metrics, announcements, activity, and links to documents.
-- **Team** — an example hierarchy with responsibilities.
-- **Handbook** — onboarding checklist and FAQ.
-- **Rules** — generic example policy sections.
+В проекте нет серверной части, базы данных, настоящей аутентификации, проверки пароля или интеграции с Discord API. Логин и пароль не отправляются по сети. После входа демонстрационная сессия сохраняется только в `sessionStorage` текущей вкладки и удаляется при выходе или закрытии вкладки.
 
-## Project structure
+Все пользователи, роли, показатели, объявления, действия и тексты правил являются примерными данными. Перед использованием в реальном сообществе их нужно заменить и подключить собственную серверную часть и систему доступа.
+
+## Запуск локально
+
+Требуется установленный Node.js и npm.
+
+```bash
+npm install
+npm run dev
+```
+
+Проверка типов:
+
+```bash
+npm run typecheck
+```
+
+Production-сборка:
+
+```bash
+npm run build
+```
+
+Сборка формируется в папке `docs/` — это настроено в `vite.config.ts` для публикации через GitHub Pages.
+
+## Публикация на GitHub Pages
+
+В настройках репозитория откройте **Settings → Pages** и выберите:
+
+- **Source:** Deploy from a branch
+- **Branch:** `main`
+- **Folder:** `/docs`
+
+Затем соберите проект и отправьте обновлённую папку `docs/` в ветку `main`:
+
+```bash
+npm run build
+git add docs
+git commit -m "Update published site"
+git push origin main
+```
+
+Для проекта в репозитории `STAFF-Web-Portal` в `vite.config.ts` должен оставаться базовый путь:
+
+```ts
+base: '/STAFF-Web-Portal/'
+```
+
+## Структура исходников
 
 ```text
 src/
-  App.tsx       Application, demo login, layouts, and pages
-  data.ts       Example roles, rules, announcements, and activity
-  main.tsx      React entry point
-  styles.css    Responsive design system
-index.html
-vite.config.ts
-tsconfig.json
+  App.tsx       Основные компоненты, демонстрационный вход и страницы
+  data.ts       Примерные роли, правила, объявления и активность
+  main.tsx      Точка входа React
+  styles.css    Стили и адаптивная дизайн-система
+index.html      HTML-шаблон Vite
+vite.config.ts  Конфигурация Vite и путь сборки
 ```
 
-## Disclaimer
+## Бренд и отсутствие аффилированности
 
-This is an independent concept/template and is not affiliated with, endorsed by, sponsored by, or supported by Discord Inc. Discord is a trademark of Discord Inc. The portal is not an official Discord product and is not connected to any particular Discord server.
+Discord, название Discord и фирменный символ Discord принадлежат Discord Inc. Их использование в этом концепте служит только для обозначения платформы, для которой предназначен пример. Проект не аффилирован с Discord Inc., не одобрен и не поддерживается компанией. Использование бренда и графических материалов не означает передачу прав на них и не включено в лицензию исходного кода этого репозитория. См. [официальные материалы бренда Discord](https://discord.com/branding).
 
-The existing `LICENSE` file is retained from the supplied project.
+## Лицензия
+
+Лицензионный текст GNU General Public License v3.0 находится в файле [`LICENSE`](./LICENSE). Он относится к исходному коду проекта в пределах прав, которыми располагают авторы. Название, логотип и другие материалы Discord не распространяются под этой лицензией.
